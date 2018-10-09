@@ -9,8 +9,9 @@ import sys
 import logging
 
 logging.basicConfig(level=logging.DEBUG, format=' %(asctime)s - %(levelname)s : %(message)s ')
+logging.disable(logging.CRITICAL)
 desktop = os.path.join(os.environ['USERPROFILE'], 'Desktop\\')
-os.chdir(desktop)
+os.chdir(desktop)   # by default, the script searches for the pdf file on the uesr's desktop
 
 def determinePages(pages: list) -> list:
     pageRegex = re.compile(r'(\d+)')    # Pattern: obtain only the numbers
@@ -21,8 +22,15 @@ def determinePages(pages: list) -> list:
     completedPagesList = []
     for pageRange in pagesList:
         tempList = [int(i) for i in pageRegex.findall(pageRange)] # Page ranges are returned as a list with 2 elements, a single page is returned as a list with 1 element; converted to int
+
         if len(tempList) == 2 and tempList[0] >= tempList[1]:
+            print(f'{tempList[0]}-{tempList[1]} is not a valid range.\n')
             continue    # Skips invalid ranges (e.g. don't include pages 18 - 15, but 15 - 18 works)
+
+        elif len(tempList) >= 3:
+            print(f'\n{"-".join(str(i) for i in tempList)} is not a valid range\n')
+            continue    # Skips invalid ranges (e.g. 12-13-16 would not be valid)
+
         else:
             completedPagesList.append(tempList) # if valid, append to the completed list
 
@@ -32,11 +40,45 @@ def determinePages(pages: list) -> list:
 # pdfTool extract <pdf file>    --> ask user for page(s) to extract
 def extractPages(pdfFile):
 
-    logging.info(pdfFile)
+    # Open the pdf file
+    openPdf = open(pdfFile, 'rb')
+    pdfReader = pdf.PdfFileReader(openPdf)
+    pdfWriter = pdf.PdfFileWriter() # Instantiates PdfFileWriter class
+
+    # Get the pages to extract from user
     pagesToExtract = input('Enter the page(s) to extract: ')
-    listOfPages = determinePages(pagesToExtract)
-    for pageOrPages in listOfPages:
-        pass
+    listOfPages = determinePages(pagesToExtract)    # Obtain the page(s) in a list format
+
+    # Add the pages to the PdfFileWriter object
+    for pageRange in listOfPages:
+        # if a page range (e.g. 3 - 5, add pages 3, 4, and 5)
+        if len(pageRange) == 2:
+            for page in range(pageRange[0] - 1, pageRange[1]):
+                pageObj = pdfReader.getPage(page)
+                pdfWriter.addPage(pageObj)
+
+        # If only a single page
+        elif len(pageRange) == 1:
+            pageObj = pdfReader.getPage(pageRange)
+            pdfWriter.addPage(pageObj)
+
+        else:
+            print('Something went wrong. Closing program...')
+            exit()
+
+    # Get the name of the new pdf file with the extracted page
+    newPdfName = input('Enter the name of the new pdf file with extracted page: ')
+
+    # Write the pages to the pdf output file as .pdf
+    if newPdfName.endswith('.pdf'):
+        pdfOutputFile = open(newPdfName, 'wb')
+    else:
+        pdfOutputFile = open(f'{newPdfName}.pdf', 'wb')
+    
+    pdfWriter.write(pdfOutputFile)  # Creates the pdf file on the desktop by default
+    openPdf.close()
+    pdfOutputFile.close()
+
 
 # TODO: pdfTool combine <pdf file> <pdf file> ...
 def combinePDFs(pdfFiles):
