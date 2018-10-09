@@ -9,7 +9,7 @@ import sys
 import logging
 
 logging.basicConfig(level=logging.DEBUG, format=' %(asctime)s - %(levelname)s : %(message)s ')
-logging.disable(logging.CRITICAL)
+# logging.disable(logging.CRITICAL)
 desktop = os.path.join(os.environ['USERPROFILE'], 'Desktop\\')
 os.chdir(desktop)   # by default, the script searches for the pdf file on the uesr's desktop
 
@@ -59,7 +59,7 @@ def extractPages(pdfFile):
 
         # If only a single page
         elif len(pageRange) == 1:
-            pageObj = pdfReader.getPage(pageRange)
+            pageObj = pdfReader.getPage(pageRange[0] - 1)
             pdfWriter.addPage(pageObj)
 
         else:
