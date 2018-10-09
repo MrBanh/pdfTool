@@ -12,7 +12,7 @@ logging.basicConfig(level=logging.DEBUG, format=' %(asctime)s - %(levelname)s : 
 desktop = os.path.join(os.environ['USERPROFILE'], 'Desktop\\')
 os.chdir(desktop)
 
-def determinePages(pages):
+def determinePages(pages: list) -> list:
     pageRegex = re.compile(r'(\d+)')    # Pattern: obtain only the numbers
     pagesList = re.split(r'\s*,\s*', pages) # Split the given page(s) and page range by removing any commas and spaces around the commas
 
@@ -21,7 +21,7 @@ def determinePages(pages):
     completedPagesList = []
     for pageRange in pagesList:
         tempList = [int(i) for i in pageRegex.findall(pageRange)] # Page ranges are returned as a list with 2 elements, a single page is returned as a list with 1 element; converted to int
-        if len(tempList) == 2 and tempList[0] > tempList[1]:
+        if len(tempList) == 2 and tempList[0] >= tempList[1]:
             continue    # Skips invalid ranges (e.g. don't include pages 18 - 15, but 15 - 18 works)
         else:
             completedPagesList.append(tempList) # if valid, append to the completed list
@@ -33,10 +33,10 @@ def determinePages(pages):
 def extractPages(pdfFile):
 
     logging.info(pdfFile)
-    # pagesToExtract = input('Enter the page(s) to extract: ')
-    # listOfPages = determinePages(pagesToExtract)
-    # for pageOrPages in listOfPages:
-    #     pass
+    pagesToExtract = input('Enter the page(s) to extract: ')
+    listOfPages = determinePages(pagesToExtract)
+    for pageOrPages in listOfPages:
+        pass
 
 # TODO: pdfTool combine <pdf file> <pdf file> ...
 def combinePDFs(pdfFiles):
