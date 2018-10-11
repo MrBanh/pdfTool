@@ -37,8 +37,19 @@ def determinePages(pages: list) -> list:
     logging.info(completedPagesList)
     return completedPagesList
 
+
+def getOutputFileName() -> str:
+    # Get the name of the new pdf file
+    newPdfName = input('Enter name for the new pdf file: ')
+
+    # Returns the specified pdf file name
+    if newPdfName.endswith('.pdf'):
+        return newPdfName
+    else:
+        return f'{newPdfName}.pdf'
+
 # pdfTool extract <pdf file>    --> ask user for page(s) to extract
-def extractPages(pdfFile):
+def extractPages(pdfFile: str):
 
     # Open the pdf file
     openPdf = open(pdfFile, 'rb')
@@ -66,23 +77,34 @@ def extractPages(pdfFile):
             print('Something went wrong. Closing program...')
             exit()
 
-    # Get the name of the new pdf file with the extracted page
-    newPdfName = input('Enter the name of the new pdf file with extracted page: ')
-
     # Write the pages to the pdf output file as .pdf
-    if newPdfName.endswith('.pdf'):
-        pdfOutputFile = open(newPdfName, 'wb')
-    else:
-        pdfOutputFile = open(f'{newPdfName}.pdf', 'wb')
-    
+    pdfOutputFile = open(getOutputFileName(), 'wb')
+
     pdfWriter.write(pdfOutputFile)  # Creates the pdf file on the desktop by default
     openPdf.close()
     pdfOutputFile.close()
 
 
-# TODO: pdfTool combine <pdf file> <pdf file> ...
-def combinePDFs(pdfFiles):
-    pass
+# pdfTool combine <pdf file> <pdf file> ...
+def combinePDFs(pdfFiles: list):
+    # Instantiate PdfFileWriter class
+    pdfWriter = pdf.PdfFileWriter()
+
+    for file in pdfFiles:
+        # Opens each pdf file
+        openPdf = open(file, 'rb')
+        pdfReader = pdf.PdfFileReader(openPdf)
+
+        # Goes through each page of each pdf and adds it to the PdfFileWriter object
+        for pageNum in range(pdfReader.numPages):
+            pageObj = pdfReader.getPage(pageNum)
+            pdfWriter.addPage(pageObj)
+
+    # Outputs the PdfFileWriter object for all pages from each specified pdf file
+    pdfOutputFile = open(getOutputFileName(), 'wb')
+    pdfWriter.write(pdfOutputFile)
+    openPdf.close()
+    pdfOutputFile.close()
 
 # TODO: pdfTool combineAll <directory of pdf files> --> ask for order to combine, calls the combine function, passes in each pdf file as arg
 def combineAllPDFs(pdfFiles):
@@ -128,7 +150,7 @@ if sys.argv[1] == 'extract':
     extractPages(sys.argv[2])
 
 elif sys.argv[1] == 'combine':
-    pass
+    combinePDFs(sys.argv[2:])
 elif sys.argv[1] == 'combineAll':
     pass
 elif sys.argv[1] == 'rotateRight':
