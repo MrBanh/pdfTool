@@ -9,7 +9,7 @@ import sys
 import logging
 
 logging.basicConfig(level=logging.DEBUG, format=' %(asctime)s - %(levelname)s : %(message)s ')
-# logging.disable(logging.CRITICAL)
+logging.disable(logging.CRITICAL)
 desktop = os.path.join(os.environ['USERPROFILE'], 'Desktop\\')
 os.chdir(desktop)   # by default, the script searches for the pdf file on the uesr's desktop
 
@@ -38,18 +38,19 @@ def determinePages(pages: list) -> list:
     return completedPagesList
 
 
-def getOutputFileName() -> str:
+def getOutputFileName(dir=desktop) -> str:
     # Get the name of the new pdf file
     newPdfName = input('Enter name for the new pdf file: ')
 
     # Returns the specified pdf file name
     if newPdfName.endswith('.pdf'):
-        return newPdfName
+        return os.path.join(dir, newPdfName)
     else:
-        return f'{newPdfName}.pdf'
+        return os.path.join(dir, f'{newPdfName}.pdf')
+
 
 # pdfTool extract <pdf file>    --> ask user for page(s) to extract
-def extractPages(pdfFile: str):
+def extractPages(pdfFile: str, dir=desktop):
 
     # Open the pdf file
     openPdf = open(pdfFile, 'rb')
@@ -78,15 +79,16 @@ def extractPages(pdfFile: str):
             exit()
 
     # Write the pages to the pdf output file as .pdf
-    pdfOutputFile = open(getOutputFileName(), 'wb')
-
+    newFileLocation = getOutputFileName(dir)
+    pdfOutputFile = open(newFileLocation, 'wb')
     pdfWriter.write(pdfOutputFile)  # Creates the pdf file on the desktop by default
+    print(f'\nDone!\n\nNew File Located at: {newFileLocation}\n')
     openPdf.close()
     pdfOutputFile.close()
 
 
 # pdfTool combine <pdf file> <pdf file> ...
-def combinePDFs(pdfFiles: list):
+def combinePDFs(pdfFiles: list, dir=desktop):
     # Instantiate PdfFileWriter class
     pdfWriter = pdf.PdfFileWriter()
 
@@ -101,14 +103,37 @@ def combinePDFs(pdfFiles: list):
             pdfWriter.addPage(pageObj)
 
     # Outputs the PdfFileWriter object for all pages from each specified pdf file
-    pdfOutputFile = open(getOutputFileName(), 'wb')
+    newFileLocation = getOutputFileName(dir)
+    pdfOutputFile = open(newFileLocation, 'wb')
     pdfWriter.write(pdfOutputFile)
+    print(f'\nDone!\n\nNew File Located at: {newFileLocation}\n')
     openPdf.close()
     pdfOutputFile.close()
 
-# TODO: pdfTool combineAll <directory of pdf files> --> ask for order to combine, calls the combine function, passes in each pdf file as arg
-def combineAllPDFs(pdfFiles):
-    pass
+# pdfTool combineAll <directory of pdf files> --> ask for order to combine, calls the combine function, passes in each pdf file as arg
+def combineAll(dir: str):
+    logging.info(os.path.isdir(os.path.abspath(dir)))
+
+    pdfList = []
+
+    # Validate directory and that it exists
+    if os.path.isdir(os.path.abspath(dir)):
+        # Goes through the list of filename strings from os.listdir(<path>)
+        for filename in os.listdir(dir):
+            # Only combine pdf files
+            if filename.endswith('.pdf'):
+                logging.info(filename)
+                pdfList.append(os.path.abspath(os.path.join(dir, filename)))
+
+    else:
+        print('Invalid directory. Please try again...')
+
+    logging.info(pdfList)
+
+    # TODO: Allow user to change the order of how the pdf files are combined
+
+    # combines all pdf files in the directory
+    combinePDFs(pdfList, dir)
 
 # TODO: pdfTool rotateRight <pdf file>
 def rotateRight(pdfFile):
@@ -119,7 +144,7 @@ def rotateLeft(pdfFile):
     pass
 
 # TODO: pdfTool rotateAll <directory of pdf files> --> ask for right or left, calls rotateLeft or rotateRight, passes in each pdf file
-def rotateAll(pdfFiles):
+def rotateAll(dir):
     pass
 
 # TODO: pdfTool rotatePages <pdf file> --> ask user for page(s) to rotate
@@ -131,7 +156,7 @@ def encryptPDF(pdfFile):
     pass
 
 # TODO: pdfTool encryptAll <directory of pdf files> --> calls encrypt function for each pdf
-def encryptAllPDFs(pdfFiles):
+def encryptAllPDFs(dir):
     pass
 
 # TODO: pdfTool decrypt <pdf file>
@@ -139,35 +164,58 @@ def decryptPDF(pdfFile):
     pass
 
 # TODO: pdfTool decryptAll <directory of pdf files> --> calls decrypt function for each pdf
-def decryptAllPDFs(pdfFiles):
+def decryptAllPDFs(dir):
     pass
 
 # TODO: pdfTool deletePages <pdf file> --> ask user for page(s) to delete
 def deletePages(pdfFile):
     pass
 
-if sys.argv[1] == 'extract':
-    extractPages(sys.argv[2])
 
-elif sys.argv[1] == 'combine':
-    combinePDFs(sys.argv[2:])
-elif sys.argv[1] == 'combineAll':
-    pass
-elif sys.argv[1] == 'rotateRight':
-    pass
-elif sys.argv[1] == 'rotateLeft':
-    pass
-elif sys.argv[1] == 'rotateAll':
-    pass
-elif sys.argv[1] == 'rotatePages':
-    pass
-elif sys.argv[1] == 'encrypt':
-    pass
-elif sys.argv[1] == 'encryptAll':
-    pass
-elif sys.argv[1] == 'decrypt':
-    pass
-elif sys.argv[1] == 'decryptAll':
-    pass
-elif sys.argv[1] == 'deletePages':
-    pass
+try:
+    if sys.argv[1] == 'extract':
+        extractPages(sys.argv[2])
+
+    elif sys.argv[1] == 'combine':
+        combinePDFs(sys.argv[2:])
+
+    elif sys.argv[1] == 'combineAll':
+        combineAll(sys.argv[2])
+
+    elif sys.argv[1] == 'rotateRight':
+        pass
+    elif sys.argv[1] == 'rotateLeft':
+        pass
+    elif sys.argv[1] == 'rotateAll':
+        pass
+    elif sys.argv[1] == 'rotatePages':
+        pass
+    elif sys.argv[1] == 'encrypt':
+        pass
+    elif sys.argv[1] == 'encryptAll':
+        pass
+    elif sys.argv[1] == 'decrypt':
+        pass
+    elif sys.argv[1] == 'decryptAll':
+        pass
+    elif sys.argv[1] == 'deletePages':
+        pass
+    else:
+        raise IndexError
+
+except IndexError:
+    print('\n!!!! PLEASE PROVIDE THE APPROPRIATE ARGUMENTS !!!!')
+    print("""
+        pdfTool extract <pdf file>
+        pdfTool combine <pdf file> <pdf file> ...
+        pdfTool combineAll <directory of pdf files>
+        pdfTool rotateRight <pdf file>
+        pdfTool rotateLeft <pdf file>
+        pdfTool rotateAll <directory of pdf files>
+        pdfTool rotatePages <pdf file>
+        pdfTool encrypt <pdf file>
+        pdfTool encryptAll <directory of pdf files>
+        pdfTool decrypt <pdf file>
+        pdfTool decryptAll <directory of pdf files>
+        pdfTool deletePages <pdf file>
+    """)
