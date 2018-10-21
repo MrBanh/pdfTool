@@ -9,9 +9,11 @@ import sys
 import logging
 
 logging.basicConfig(level=logging.DEBUG, format=' %(asctime)s - %(levelname)s : %(message)s ')
-logging.disable(logging.CRITICAL)
+# logging.disable(logging.CRITICAL)
 desktop = os.path.join(os.environ['USERPROFILE'], 'Desktop\\')
 os.chdir(desktop)   # by default, the script searches for the pdf file on the uesr's desktop
+
+clear = lambda: os.system('cls')
 
 def determinePages(pages: list) -> list:
     pageRegex = re.compile(r'(\d+)')    # Pattern: obtain only the numbers
@@ -47,6 +49,77 @@ def getOutputFileName(dir=desktop) -> str:
         return os.path.join(dir, newPdfName)
     else:
         return os.path.join(dir, f'{newPdfName}.pdf')
+
+
+def printPdfList(oldList: list, newList: list, listLen: int):
+    # Print out current list of available pdf files and the new order list
+    print()
+    print('------------------------- PDF LIST -------------------------')
+    print(f'| {"OLD LIST":^26} || {"NEW ORDERED LIST":^26} |')
+    print('------------------------------------------------------------')
+    
+    for i in range(listLen):
+        if i < len(oldList):
+            print(f'| {i + 1}. {os.path.basename(oldList[i]):<23} |', end='')
+        else:
+            print(f'| {" ":<26} |', end='')
+
+        if i < len(newList):
+            print(f'| {i + 1}. {os.path.basename(newList[i]):<23} |', end='')
+        else:
+            print(f'| {" ":<26} |', end='')
+        
+        print()
+
+    print('------------------------------------------------------------')
+    print()
+
+
+def newOrder(pdfList: list) -> list:
+
+    newList = []
+    tempList = pdfList[:]
+    listLen = len(tempList)
+
+    print('\nCurrent order of pdf files: \n')
+    for i in range(len(tempList)):
+        print(f'{i + 1}. {os.path.basename(tempList[i])}')
+
+    toReorder = input('\nWould you like to re-order? (y/n): ')
+    if toReorder.lower() == 'y':
+        while tempList:
+            # Get user input index of pdf file to append to new list
+            try:
+                if len(tempList) == 1:
+                    newList.append(tempList.pop())
+                    clear()
+                    printPdfList(tempList, newList, listLen)
+                    break
+                    
+                reorderIndex = int(input('Please enter a number from above: '))
+                # Make sure the pdf file is within range (No IndexError)
+                if reorderIndex > len(tempList):
+                    raise Exception
+            except Exception:
+                print('Invalid input.')
+                continue
+            else:
+                # Append the specified file to new list and delete from tempList
+                newList.append(tempList.pop(reorderIndex - 1))
+                logging.info(tempList)
+                printPdfList(tempList, newList, listLen)
+
+        logging.info(f'Original List: {tempList}')
+        logging.info(f'New ordered list: {newList}')
+
+        # return newList
+        return newList
+
+    elif toReorder.lower() == 'n':
+        return tempList
+    
+    else:
+        print('Invalid input.')
 
 
 # pdfTool extract <pdf file>    --> ask user for page(s) to extract
@@ -130,11 +203,13 @@ def combineAll(dir: str):
 
     logging.info(pdfList)
 
-    # TODO: Allow user to change the order of how the pdf files are combined
+    # Allow user to change the order of how the pdf files are combined
+    pdfList = newOrder(pdfList)
 
     # combines all pdf files in the directory
     combinePDFs(pdfList, dir)
 
+    
 # TODO: pdfTool rotateRight <pdf file>
 def rotateRight(pdfFile):
     pass
