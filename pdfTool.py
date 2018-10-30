@@ -210,13 +210,67 @@ def combineAll(dir: str):
     combinePDFs(pdfList, dir)
 
     
-# TODO: pdfTool rotateRight <pdf file>
-def rotateRight(pdfFile):
-    pass
+# pdfTool rotate <pdf file>
+def rotate(pdfFile: str):
+    # Make sure we get the pdf file
+    if not pdfFile.endswith('.pdf'):
+        pdfFile = pdfFile + '.pdf'
 
-# TODO: pdfTool rotateLeft <pdf file>
-def rotateLeft(pdfFile):
-    pass
+    # Make sure the file actually exists
+    if not os.path.exists(pdfFile):
+        print(f'\n{pdfFile} does not exist...\n')
+        exit()
+
+    openFile = open(pdfFile, 'rb')
+    pdfReader = pdf.PdfFileReader(openFile)
+
+    while True:
+        rotateOption = input("""
+            Please enter the direction to rotate:
+                1. Rotate Clockwise (right)
+                2. Rotate CounterClockwise (left)
+                3. Rotate Upside Down
+            
+            -> """)
+
+        try:
+            # Default is rotate right
+            rotateTo = 90
+            if int(rotateOption) == 1:
+                break
+            elif int(rotateOption) == 2:
+                rotateTo = 270  # Rotate left
+                break
+            elif int(rotateOption) == 3:
+                rotateTo = 180  # Rotate upside down
+                break
+            else:
+                continue
+        except ValueError:
+            print('\nInvalid input')
+
+    # Create PdfFileWriter object
+    pdfWriter = pdf.PdfFileWriter()
+
+    # Loop through each page, rotate the page, then add to PdfFileWriter object
+    for pageNum in range(pdfReader.numPages):
+        # Obtain a page from the pdf file
+        page = pdfReader.getPage(pageNum)
+        # Rotate that page
+        page.rotateClockwise(rotateTo)
+        # Add the page to the PdfFileWriter object
+        pdfWriter.addPage(page)
+
+    # Create pdf file based on the original pdf file name
+    fileName = os.path.splitext(pdfFile)[0] + '_rotated.pdf'
+    resultPdfFile = open(fileName, 'wb')
+
+    # Write to the new pdf file
+    pdfWriter.write(resultPdfFile)
+
+    resultPdfFile.close()
+    openFile.close()
+
 
 # TODO: pdfTool rotateAll <directory of pdf files> --> ask for right or left, calls rotateLeft or rotateRight, passes in each pdf file
 def rotateAll(dir):
@@ -257,10 +311,9 @@ try:
     elif sys.argv[1] == 'combineAll':
         combineAll(sys.argv[2])
 
-    elif sys.argv[1] == 'rotateRight':
-        pass
-    elif sys.argv[1] == 'rotateLeft':
-        pass
+    elif sys.argv[1] == 'rotate':
+        rotate(sys.argv[2])
+
     elif sys.argv[1] == 'rotateAll':
         pass
     elif sys.argv[1] == 'rotatePages':
