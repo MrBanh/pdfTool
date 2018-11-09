@@ -161,7 +161,7 @@ def extractPages(pdfFile: str, dir=desktop):
 
 
 # pdfTool combine <pdf file> <pdf file> ...
-def combinePDFs(pdfFiles: list, dir=desktop):
+def combinePDFs(pdfFiles: list, dir: str=desktop):
     # Instantiate PdfFileWriter class
     pdfWriter = pdf.PdfFileWriter()
 
@@ -273,7 +273,7 @@ def rotate(pdfFile: str):
 
 
 # pdfTool rotateAll <directory of pdf files> --> ask for right or left, calls rotateLeft or rotateRight, passes in each pdf file
-def rotateAll(dir):
+def rotateAll(dir: str):
     pdfList = []
 
     # Validate directory and that it exists
@@ -294,24 +294,55 @@ def rotateAll(dir):
     
     print('Done!')
 
-# TODO: pdfTool rotatePages <pdf file> --> ask user for page(s) to rotate
-def rotatePages(pdfFile):
-    pass
+# pdfTool encrypt <pdf file> --> ask user for password
+def encrypt(pdfFile: str):
+    # Make sure we get the pdf file
+    if not pdfFile.endswith('.pdf'):
+        pdfFile = pdfFile + '.pdf'
 
-# TODO: pdfTool encrypt <pdf file> --> ask user for password
-def encryptPDF(pdfFile):
-    pass
+    # Make sure the file actually exists
+    if not os.path.exists(pdfFile):
+        print(f'\n{pdfFile} does not exist...\n')
+        exit()
 
+    openFile = open(pdfFile, 'rb')
+    pdfReader = pdf.PdfFileReader(openFile)
+    
+    # Make sure the file isn't encrypted
+    if pdfReader.isEncrypted:
+        print(f'{os.path.basename(pdfFile)} is already encrypted. Closing program...')
+        exit()
+
+    else:   # Encrypt the file
+        pdfWriter = pdf.PdfFileWriter()
+        for pageNum in range(pdfReader.numPages):
+            page = pdfReader.getPage(pageNum)
+            pdfWriter.addPage(page)
+
+        # Add password for encryption
+        pdfWriter.encrypt(input(f'Enter a password to encrypt {os.path.basename(pdfFile)}: '))
+        
+        # Create pdf file based on the original pdf file name
+        fileName = os.path.splitext(pdfFile)[0] + '_encrypted.pdf'
+        resultPdfFile = open(fileName, 'wb')
+
+        # Write to the new pdf file
+        pdfWriter.write(resultPdfFile)
+
+        resultPdfFile.close()
+        openFile.close()
+
+    
 # TODO: pdfTool encryptAll <directory of pdf files> --> calls encrypt function for each pdf
-def encryptAllPDFs(dir):
+def encryptAll(dir):
     pass
 
 # TODO: pdfTool decrypt <pdf file>
-def decryptPDF(pdfFile):
+def decrypt(pdfFile):
     pass
 
 # TODO: pdfTool decryptAll <directory of pdf files> --> calls decrypt function for each pdf
-def decryptAllPDFs(dir):
+def decryptAll(dir):
     pass
 
 # TODO: pdfTool deletePages <pdf file> --> ask user for page(s) to delete
@@ -335,10 +366,9 @@ try:
     elif sys.argv[1] == 'rotateAll':
         rotateAll(sys.argv[2])
 
-    elif sys.argv[1] == 'rotatePages':
-        pass
     elif sys.argv[1] == 'encrypt':
-        pass
+        encrypt(sys.argv[2])
+
     elif sys.argv[1] == 'encryptAll':
         pass
     elif sys.argv[1] == 'decrypt':
@@ -356,10 +386,8 @@ except IndexError:
         pdfTool extract <pdf file>
         pdfTool combine <pdf file> <pdf file> ...
         pdfTool combineAll <directory of pdf files>
-        pdfTool rotateRight <pdf file>
-        pdfTool rotateLeft <pdf file>
+        pdfTool rotate <pdf file>
         pdfTool rotateAll <directory of pdf files>
-        pdfTool rotatePages <pdf file>
         pdfTool encrypt <pdf file>
         pdfTool encryptAll <directory of pdf files>
         pdfTool decrypt <pdf file>
