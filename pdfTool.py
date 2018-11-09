@@ -225,8 +225,8 @@ def rotate(pdfFile: str):
     pdfReader = pdf.PdfFileReader(openFile)
 
     while True:
-        rotateOption = input("""
-            Please enter the direction to rotate:
+        rotateOption = input(f"""
+            Please enter the direction to rotate {os.path.basename(pdfFile)}:
                 1. Rotate Clockwise (right)
                 2. Rotate CounterClockwise (left)
                 3. Rotate Upside Down
@@ -272,9 +272,27 @@ def rotate(pdfFile: str):
     openFile.close()
 
 
-# TODO: pdfTool rotateAll <directory of pdf files> --> ask for right or left, calls rotateLeft or rotateRight, passes in each pdf file
+# pdfTool rotateAll <directory of pdf files> --> ask for right or left, calls rotateLeft or rotateRight, passes in each pdf file
 def rotateAll(dir):
-    pass
+    pdfList = []
+
+    # Validate directory and that it exists
+    if os.path.isdir(os.path.abspath(dir)):
+        # Goes through the list of filename strings from os.listdir(<path>)
+        for filename in os.listdir(dir):
+            # Only combine pdf files
+            if filename.endswith('.pdf'):
+                logging.info(filename)
+                pdfList.append(os.path.abspath(os.path.join(dir, filename)))
+
+    else:
+        print('Invalid directory. Please try again...')
+
+    # Pass each pdf in the pdfList to the rotate() function
+    for pdf in pdfList:
+        rotate(pdf)
+    
+    print('Done!')
 
 # TODO: pdfTool rotatePages <pdf file> --> ask user for page(s) to rotate
 def rotatePages(pdfFile):
@@ -315,7 +333,8 @@ try:
         rotate(sys.argv[2])
 
     elif sys.argv[1] == 'rotateAll':
-        pass
+        rotateAll(sys.argv[2])
+
     elif sys.argv[1] == 'rotatePages':
         pass
     elif sys.argv[1] == 'encrypt':
