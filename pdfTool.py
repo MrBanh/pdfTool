@@ -40,7 +40,7 @@ def determinePages(pages: list) -> list:
     return completedPagesList
 
 
-def getOutputFileName(dir=desktop) -> str:
+def getOutputFileName(dir: str=desktop) -> str:
     # Get the name of the new pdf file
     newPdfName = input('Enter name for the new pdf file: ')
 
@@ -333,9 +333,27 @@ def encrypt(pdfFile: str):
         openFile.close()
 
     
-# TODO: pdfTool encryptAll <directory of pdf files> --> calls encrypt function for each pdf
-def encryptAll(dir):
-    pass
+# pdfTool encryptAll <directory of pdf files> --> calls encrypt function for each pdf
+def encryptAll(dir: str):
+    pdfList = []
+
+    # Validate directory and that it exists
+    if os.path.isdir(os.path.abspath(dir)):
+        # Goes through the list of filename strings from os.listdir(<path>)
+        for filename in os.listdir(dir):
+            # Only combine pdf files
+            if filename.endswith('.pdf'):
+                logging.info(filename)
+                pdfList.append(os.path.abspath(os.path.join(dir, filename)))
+
+    else:
+        print('Invalid directory. Please try again...')
+
+    # Pass each pdf in the pdfList to the rotate() function
+    for pdf in pdfList:
+        encrypt(pdf)
+    
+    print('Done!')
 
 # TODO: pdfTool decrypt <pdf file>
 def decrypt(pdfFile):
@@ -344,11 +362,6 @@ def decrypt(pdfFile):
 # TODO: pdfTool decryptAll <directory of pdf files> --> calls decrypt function for each pdf
 def decryptAll(dir):
     pass
-
-# TODO: pdfTool deletePages <pdf file> --> ask user for page(s) to delete
-def deletePages(pdfFile):
-    pass
-
 
 try:
     if sys.argv[1] == 'extract':
@@ -370,12 +383,11 @@ try:
         encrypt(sys.argv[2])
 
     elif sys.argv[1] == 'encryptAll':
-        pass
+        encryptAll(sys.argv[2])
+
     elif sys.argv[1] == 'decrypt':
         pass
     elif sys.argv[1] == 'decryptAll':
-        pass
-    elif sys.argv[1] == 'deletePages':
         pass
     else:
         raise IndexError
@@ -392,5 +404,4 @@ except IndexError:
         pdfTool encryptAll <directory of pdf files>
         pdfTool decrypt <pdf file>
         pdfTool decryptAll <directory of pdf files>
-        pdfTool deletePages <pdf file>
     """)
