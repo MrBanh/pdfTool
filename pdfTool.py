@@ -148,8 +148,8 @@ def extractPages(pdfFile: str, dir=desktop):
             pdfWriter.addPage(pageObj)
 
         else:
-            print('Something went wrong. Closing program...')
-            exit()
+            print('Something went wrong.')
+            return
 
     # Write the pages to the pdf output file as .pdf
     newFileLocation = getOutputFileName(dir)
@@ -184,7 +184,7 @@ def combinePDFs(pdfFiles: list, dir: str=desktop):
     pdfOutputFile.close()
 
 # pdfTool combineAll <directory of pdf files> --> ask for order to combine, calls the combine function, passes in each pdf file as arg
-def combineAll(dir: str):
+def combineAll(dir: str=desktop):
     logging.info(os.path.isdir(os.path.abspath(dir)))
 
     pdfList = []
@@ -219,7 +219,7 @@ def rotate(pdfFile: str):
     # Make sure the file actually exists
     if not os.path.exists(pdfFile):
         print(f'\n{pdfFile} does not exist...\n')
-        exit()
+        return
 
     openFile = open(pdfFile, 'rb')
     pdfReader = pdf.PdfFileReader(openFile)
@@ -273,7 +273,7 @@ def rotate(pdfFile: str):
 
 
 # pdfTool rotateAll <directory of pdf files> --> ask for right or left, calls rotateLeft or rotateRight, passes in each pdf file
-def rotateAll(dir: str):
+def rotateAll(dir: str=desktop):
     pdfList = []
 
     # Validate directory and that it exists
@@ -303,15 +303,15 @@ def encrypt(pdfFile: str):
     # Make sure the file actually exists
     if not os.path.exists(pdfFile):
         print(f'\n{pdfFile} does not exist...\n')
-        exit()
+        return
 
     openFile = open(pdfFile, 'rb')
     pdfReader = pdf.PdfFileReader(openFile)
     
     # Make sure the file isn't encrypted
     if pdfReader.isEncrypted:
-        print(f'{os.path.basename(pdfFile)} is already encrypted. Closing program...')
-        exit()
+        print(f'{os.path.basename(pdfFile)} is already encrypted.')
+        return
 
     else:   # Encrypt the file
         pdfWriter = pdf.PdfFileWriter()
@@ -334,7 +334,7 @@ def encrypt(pdfFile: str):
 
     
 # pdfTool encryptAll <directory of pdf files> --> calls encrypt function for each pdf
-def encryptAll(dir: str):
+def encryptAll(dir: str=desktop):
     pdfList = []
 
     # Validate directory and that it exists
@@ -355,13 +355,75 @@ def encryptAll(dir: str):
     
     print('Done!')
 
-# TODO: pdfTool decrypt <pdf file>
-def decrypt(pdfFile):
-    pass
+# pdfTool decrypt <pdf file>
+def decrypt(pdfFile: str):
+    # Make sure we get the pdf file
+    if not pdfFile.endswith('.pdf'):
+        pdfFile = pdfFile + '.pdf'
+    
+    # Make sure the file actually exists
+    if not os.path.exists(pdfFile):
+        print(f'\n{pdfFile} does not exist...\n')
+        return
+    
+    openFile = open(pdfFile, 'rb')
+    pdfReader = pdf.PdfFileReader(openFile)
 
-# TODO: pdfTool decryptAll <directory of pdf files> --> calls decrypt function for each pdf
-def decryptAll(dir):
-    pass
+    # Make sure the file is encrypted
+    if not pdfReader.isEncrypted:
+        print(f'{os.path.basename(pdfFile)} is not encrypted.')
+        return
+    
+    else:   # Decrypt it
+        while True:
+            isDecrypted = pdfReader.decrypt(input(  f'Enter decryption password'
+                                                    f' {os.path.basename(pdfFile)}: '))
+
+            # Handles an incorrect password
+            if isDecrypted == 0:
+                print('\n>> File was not decrypted with the provided password.')
+                print('>> Try again or press <CTRL + C + Return> to quit.\n')
+            
+            else:
+                break
+
+        # Create a new pdf file for the decrypted file
+        pdfWriter = pdf.PdfFileWriter()
+        for pageNum in range(pdfReader.numPages):
+            page = pdfReader.getPage(pageNum)
+            pdfWriter.addPage(page)
+
+        # Create pdf file based on the original pdf file name
+        fileName = os.path.splitext(pdfFile)[0] + '_decrypted.pdf'
+        resultPdfFile = open(fileName, 'wb')
+
+        # Write to the new pdf file
+        pdfWriter.write(resultPdfFile)
+
+        resultPdfFile.close()
+        openFile.close()
+
+# pdfTool decryptAll <directory of pdf files> --> calls decrypt function for each pdf
+def decryptAll(dir: str=desktop):
+    pdfList = []
+
+    # Validate directory and that it exists
+    if os.path.isdir(os.path.abspath(dir)):
+        # Goes through the list of filename strings from os.listdir(<path>)
+        for filename in os.listdir(dir):
+            # Only combine pdf files
+            if filename.endswith('.pdf'):
+                logging.info(filename)
+                pdfList.append(os.path.abspath(os.path.join(dir, filename)))
+
+    else:
+        print('Invalid directory. Please try again...')
+
+    # Pass each pdf in the pdfList to the rotate() function
+    for pdf in pdfList:
+        decrypt(pdf)
+    
+    print('Done!')
 
 try:
     if sys.argv[1] == 'extract':
@@ -386,9 +448,10 @@ try:
         encryptAll(sys.argv[2])
 
     elif sys.argv[1] == 'decrypt':
-        pass
+        decrypt(sys.argv[2])
+
     elif sys.argv[1] == 'decryptAll':
-        pass
+        decryptAll(sys.argv[2])
     else:
         raise IndexError
 
