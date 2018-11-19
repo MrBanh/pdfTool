@@ -462,14 +462,27 @@ def decryptAll(dir: str = desktop):
     print('Done!')
 
 
-def PdfWithSpaces(pdfStr: str) -> list:
-    pass
+# TODO: Handles user provide pdfs that have spaces in the pdf file name
+# def PdfWithSpaces(pdfStr: str) -> list:
+#     logging.info(pdfStr)
+
+#     tempStr = ''
+#     allPdfsListed = []
+#     for letterIndex in range(len(pdfStr)):
+
+#         if pdfStr[letterIndex:letterIndex + 4] == '.pdf':
+#             allPdfsListed.append(tempStr)
+#             tempStr = ''
+#         else:
+#             tempStr += pdfStr[letterIndex]
+
+#     logging.info(allPdfsListed)
 
 
 try:
     if sys.argv[1] == 'extract':
-        # extractPages(sys.argv[2])
-        pass
+        extractPages(sys.argv[2])
+        # PdfWithSpaces(' '.join(sys.argv[2:]))
 
     elif sys.argv[1] == 'combine':
         combinePDFs(sys.argv[2:])
