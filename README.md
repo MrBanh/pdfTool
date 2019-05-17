@@ -1,6 +1,6 @@
 # pdfTool
 
-pdfTool is a command-line that utilizes the PyPDF4 package to extract pages from a pdf, combine 2 pdf files, combine all pdf files in a directory, rotate the orientation of a pdf, rotate all pdf files in a directory, encrypting and decrypting a pdf file, and encrypting and decrypting all pdf files in a directory.
+pdfTool is a command-line tool that utilizes the PyPDF4 pip package to extract pages from a pdf, combine 2 pdf files, combine all pdf files in a directory, rotate the orientation of a pdf, rotate all pdf files in a directory, encrypting and decrypting a pdf file, or encrypting and decrypting all pdf files in a directory.
 
 ## Getting Started
 
